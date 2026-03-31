@@ -21,3 +21,4 @@ venv/
 # Logs
 logs/usage_log.csv
 logs/
+chat_logs/

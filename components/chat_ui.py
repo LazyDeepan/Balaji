@@ -1,4 +1,5 @@
 import streamlit as st
+from utils.chat_history import save_message, load_history, clear_history
 from core.explainer import explain_concept
 from core.summarizer import summarize_text
 from core.quizzer import (
@@ -21,8 +22,10 @@ def chat_ui(selected_mode, selected_sub_mode=None):
     else:
         st.subheader(f"💬 {selected_mode}")
 
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
+    if "messages" not in st.session_state or st.session_state.get("current_mode") != selected_mode:
+        raw = load_history(selected_mode)
+        st.session_state.messages = [{"role": m["role"], "content": m["content"]} for m in raw]
+        st.session_state.current_mode = selected_mode
 
     for msg in st.session_state.messages:
         with st.chat_message(msg["role"]):
@@ -31,6 +34,7 @@ def chat_ui(selected_mode, selected_sub_mode=None):
     prompt = st.chat_input(f"Type your message…")
     if prompt:
         st.session_state.messages.append({"role": "user", "content": prompt})
+        save_message(selected_mode, "user", prompt)
         with st.chat_message("user"):
             st.markdown(prompt)
 
@@ -44,11 +48,9 @@ def chat_ui(selected_mode, selected_sub_mode=None):
                         assistant_response = explain_concept(prompt, previous_context)
 
                     elif selected_mode == "📰 Summarizer":
-                        # Use uploaded PDF if available; treat chat prompt as extra instruction or follow-up
                         pdf = st.session_state.get("pdf_content")
                         user_focus = st.session_state.get("user_focus", "")
 
-                        # detect a likely follow-up question (short, starts with wh-word or ends with '?')
                         p = prompt.strip()
                         first_word = p.split()[0].lower() if p else ""
                         is_short = len(p.split()) <= 12
@@ -56,7 +58,6 @@ def chat_ui(selected_mode, selected_sub_mode=None):
                         is_followup = bool(p) and (is_short or is_question)
 
                         if pdf:
-                            # If follow-up and there is prior assistant content, prefer adapting the previous summary
                             if is_followup:
                                 extra = f"Follow-up question: {p}. Use the previous assistant response and the PDF content to answer concisely."
                             else:
@@ -69,7 +70,6 @@ def chat_ui(selected_mode, selected_sub_mode=None):
                                 extra_instruction=extra
                             )
                         else:
-                            # No PDF loaded — summarize the user's prompt directly (legacy behavior)
                             assistant_response = summarize_text(p, previous_context)
 
                     elif selected_mode == "🧩 Quizzer":
@@ -83,7 +83,6 @@ def chat_ui(selected_mode, selected_sub_mode=None):
                             st.info(
                                 "Paste your exam questions here. If specifying marks/word range, include this in each question."
                             )
-                            # No word limit input needed; backend smartly adapts using prompt instructions
                             assistant_response = solve_questions(prompt, previous_context)
                         elif selected_sub_mode == "✅ Evaluate Answers":
                             qs_ans = prompt.split("---")
@@ -92,16 +91,17 @@ def chat_ui(selected_mode, selected_sub_mode=None):
                             assistant_response = "⚠️ Unknown Quizzer sub-mode."
                     else:
                         assistant_response = "⚠️ Unknown mode selected."
+
             except Exception as e:
                 assistant_response = (
                     "❌ Sorry, there was an error processing your request. "
                     "Please try again in a few seconds.\n\n"
                     f"Error: {str(e)}"
                 )
+
             response_placeholder.markdown(assistant_response)
             st.code(assistant_response, language="markdown")
 
-            # Log usage with visual tracking
             log_usage(
                 mode=selected_mode,
                 sub_mode=selected_sub_mode,
@@ -110,8 +110,8 @@ def chat_ui(selected_mode, selected_sub_mode=None):
                 response_text=assistant_response,
                 visuals_enabled=st.session_state.get("include_visuals", False),
             )
-            
-            # Feedback buttons            
+
+            # Feedback buttons
             st.markdown("**Was this response helpful?**")
             col1, col2 = st.columns(2)
             with col1:
@@ -124,3 +124,4 @@ def chat_ui(selected_mode, selected_sub_mode=None):
                     )
 
         st.session_state.messages.append({"role": "assistant", "content": assistant_response})
+        save_message(selected_mode, "assistant", assistant_response)

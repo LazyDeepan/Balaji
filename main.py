@@ -1,9 +1,11 @@
 import streamlit as st
+from utils.chat_history import init_db
 from components.sidebar import sidebar_ui
 from components.chat_ui import chat_ui
 from components.pdf_handler import handle_pdf_upload
 from PIL import Image
 
+init_db()  # creates the DB table on first run
 img = Image.open("assets/sgpa_logo.png")
 st.set_page_config(page_title="SGPA", page_icon=img, layout="wide")
 
