@@ -7,7 +7,7 @@ from PIL import Image
 
 init_db()  # creates the DB table on first run
 img = Image.open("assets/sgpa_logo.png")
-st.set_page_config(page_title="SGPA", page_icon=img, layout="wide")
+st.set_page_config(page_title="Adaptive Learning Tutor", page_icon=img, layout="wide")
 
 # Initialize session state
 if "pdf_content" not in st.session_state:
@@ -20,7 +20,7 @@ selected_mode, selected_sub_mode = sidebar_ui()
 
 # Header
 
-st.title("Study Guide & Personal Assistant")
+st.title("Adaptive Learning Tutor")
 
 # PDF Handler (optional upload)
 pdf_text, user_focus, summarize_clicked = handle_pdf_upload()

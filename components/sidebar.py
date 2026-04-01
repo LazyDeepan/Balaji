@@ -49,14 +49,6 @@ def sidebar_ui():
         time.sleep(2)
         success_placeholder.empty()
 
-    st.sidebar.markdown(
-        """
-        [![Watch Demo](https://img.shields.io/badge/Watch-Demo%20Video-red?logo=youtube)](https://youtu.be/Yd0xMocB-V0)
-        [![GitHub](https://img.shields.io/badge/GitHub-Repo-181717?logo=github)](https://github.com/GPA95/SGPA)
-        [![HelpDoc](https://img.shields.io/badge/User%20Help-How%20to%20Use-blue?logo=google-drive)](https://drive.google.com/file/d/14NEdW6L4WC_hiqlhNBEElzJnfN60EZDa/view?usp=sharing)
-        [![Feedback](https://img.shields.io/badge/User%20Feedback-Submit%20Feedback-purple?logo=google-forms)](https://forms.gle/W48Y2TFGwe8fBMFs7)
-        """
-    )
-    st.sidebar.caption("✨ SGPA - AI Powered Study Assistant")
+    st.sidebar.caption("✨ Adaptive Learning Tutor")
 
     return mode, sub_mode
